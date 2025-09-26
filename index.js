@@ -5,24 +5,17 @@ import morgan from "morgan";
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS para desarrollo local (Vite corre en 5173, pero usaremos proxy)
 app.use(cors());
 app.use(express.json());
-app.use(morgan("dev"));ı
+app.use(morgan("dev"));
 
-/**
- * Rate limit: 1 compra por minuto por cliente.
- * Clave del cliente: header 'x-client-id' o IP remota.
- */
-const WINDOW_MS = 6_000;
-const clients = new Map(); // key -> { last: number }
+const WINDOW_MS = 60_000;
+const clients = new Map();
 
 function getClientKey(req) {
-  // Permite que el frontend fije su propio ID (p.ej., localStorage) o usa la IP
   return req.header("x-client-id") || req.ip;
 }
 
-// Limpieza ocasional para evitar crecimiento indefinido del mapa
 setInterval(() => {
   const now = Date.now();
   for (const [key, rec] of clients.entries()) {
